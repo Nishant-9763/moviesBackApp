@@ -81,13 +81,11 @@ const loginUser = async function (req, res) {
     // If password is provided
     if (password) {
       if (password === findUser.password) {
-        return res
-          .status(200)
-          .send({
-            status: true,
-            message: "Login successful with password.",
-            data: findUser,
-          });
+        return res.status(200).send({
+          status: true,
+          message: "Login successful with password.",
+          data: findUser,
+        });
       } else {
         return res
           .status(400)
@@ -102,6 +100,96 @@ const loginUser = async function (req, res) {
     });
   } catch (error) {
     console.error("Error in loginUser:", error);
+    return res
+      .status(500)
+      .send({ status: false, message: "Internal Server Error." });
+  }
+};
+
+const loginUserWithOtp = async function (req, res) {
+  try {
+    const { mobile, otp } = req.body;
+
+    // Validate required fields
+    if (!mobile) {
+      return res
+        .status(400)
+        .send({ status: false, message: "Mobile number is required." });
+    }
+    if (!otp) {
+      return res
+        .status(400)
+        .send({ status: false, message: "OTP is required." });
+    }
+
+    // Find the user by mobile number
+    const findUser = await userModel.findOne({ mobile: mobile });
+    if (!findUser) {
+      return res
+        .status(404)
+        .send({ status: false, message: "User not found." });
+    }
+    // If OTP is provided
+    if (otp) {
+      if (otp === findUser.otp) {
+        // Update the OTP for the user in the database
+        await userModel.updateOne({ mobile: mobile }, { $set: { otp: null } });
+        return res.status(200).send({
+          status: true,
+          message: "Login successful with OTP.",
+          data: findUser,
+        });
+      } else {
+        return res
+          .status(400)
+          .send({ status: false, message: "OTP does not match." });
+      }
+    }
+  } catch (error) {
+    return res
+      .status(500)
+      .send({ status: false, message: "Internal Server Error." });
+  }
+};
+
+const loginUserWithPassword = async function (req, res) {
+  try {
+    const { mobile, password } = req.body;
+
+    // Validate required fields
+    if (!mobile) {
+      return res
+        .status(400)
+        .send({ status: false, message: "Mobile number is required." });
+    }
+    if (!password) {
+      return res
+        .status(400)
+        .send({ status: false, message: "Password is required." });
+    }
+
+    // Find the user by mobile number
+    const findUser = await userModel.findOne({ mobile: mobile });
+    if (!findUser) {
+      return res
+        .status(404)
+        .send({ status: false, message: "User not found." });
+    }
+    // If password is provided
+    if (password) {
+      if (password === findUser.password) {
+        return res.status(200).send({
+          status: true,
+          message: "Login successful with password.",
+          data: findUser,
+        });
+      } else {
+        return res
+          .status(400)
+          .send({ status: false, message: "Password does not match." });
+      }
+    }
+  } catch (error) {
     return res
       .status(500)
       .send({ status: false, message: "Internal Server Error." });
@@ -159,4 +247,6 @@ module.exports = {
   loginUser,
   sendOtp,
   getUser,
+  loginUserWithPassword,
+  loginUserWithOtp,
 };
