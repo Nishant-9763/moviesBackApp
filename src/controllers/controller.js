@@ -5,7 +5,7 @@ const axios = require("axios");
 const apiKey = process.env.API_KEY_FAST2SMS;
 const sendOtpUrl = process.env.OTPURL;
 
-async function sendOTP(mobileNumber, otp) {
+async function sendOTP(mobNo, otp) {
   try {
     const response = await axios.post(
       sendOtpUrl,
@@ -15,7 +15,7 @@ async function sendOTP(mobileNumber, otp) {
         message: `Welcome to MovieDekho. Your Login code is ${otp}.Don't share with anyone.`,
         language: "english",
         flash: 0,
-        numbers: mobileNumber,
+        numbers: mobNo
       },
       {
         headers: {
@@ -24,7 +24,7 @@ async function sendOTP(mobileNumber, otp) {
       }
     );
 
-    // console.log("success", response.data);
+    console.log("success", response.data);
     // You can handle the response as needed
   } catch (error) {
     res.status(500).send({ status: false, error: error.message });
@@ -44,17 +44,17 @@ const createUser = async function (req, res) {
 
 const loginUser = async function (req, res) {
   try {
-    const { mobile, password, otp } = req.body;
+    const { mobNo, password, otp } = req.body;
 
     // Validate required fields
-    if (!mobile) {
+    if (!mobNo) {
       return res
         .status(400)
         .send({ status: false, message: "Mobile number is required." });
     }
 
     // Find the user by mobile number
-    const findUser = await userModel.findOne({ mobile: mobile });
+    const findUser = await userModel.findOne({ mobile: mobNo });
     if (!findUser) {
       return res
         .status(404)
@@ -65,7 +65,7 @@ const loginUser = async function (req, res) {
     if (otp) {
       if (otp === findUser.otp) {
         // Update the OTP for the user in the database
-        await userModel.updateOne({ mobile: mobile }, { $set: { otp: null } });
+        await userModel.updateOne({ mobile: mobNo }, { $set: { otp: null } });
         return res.status(200).send({
           status: true,
           message: "Login successful with OTP.",
@@ -108,10 +108,10 @@ const loginUser = async function (req, res) {
 
 const loginUserWithOtp = async function (req, res) {
   try {
-    const { mobile, otp } = req.body;
+    const { mobNo, otp } = req.body;
 
     // Validate required fields
-    if (!mobile) {
+    if (!mobNo) {
       return res
         .status(400)
         .send({ status: false, message: "Mobile number is required." });
@@ -123,7 +123,7 @@ const loginUserWithOtp = async function (req, res) {
     }
 
     // Find the user by mobile number
-    const findUser = await userModel.findOne({ mobile: mobile });
+    const findUser = await userModel.findOne({ mobile: mobNo });
     if (!findUser) {
       return res
         .status(404)
@@ -133,7 +133,7 @@ const loginUserWithOtp = async function (req, res) {
     if (otp) {
       if (otp === findUser.otp) {
         // Update the OTP for the user in the database
-        await userModel.updateOne({ mobile: mobile }, { $set: { otp: null } });
+        await userModel.updateOne({ mobile: mobNo }, { $set: { otp: null } });
         return res.status(200).send({
           status: true,
           message: "Login successful with OTP.",
@@ -154,10 +154,10 @@ const loginUserWithOtp = async function (req, res) {
 
 const loginUserWithPassword = async function (req, res) {
   try {
-    const { mobile, password } = req.body;
+    const { mobNo, password } = req.body;
 
     // Validate required fields
-    if (!mobile) {
+    if (!mobNo) {
       return res
         .status(400)
         .send({ status: false, message: "Mobile number is required." });
@@ -169,7 +169,7 @@ const loginUserWithPassword = async function (req, res) {
     }
 
     // Find the user by mobile number
-    const findUser = await userModel.findOne({ mobile: mobile });
+    const findUser = await userModel.findOne({ mobile: mobNo });
     if (!findUser) {
       return res
         .status(404)
@@ -198,17 +198,17 @@ const loginUserWithPassword = async function (req, res) {
 
 const sendOtp = async function (req, res) {
   try {
-    const { mobile } = req.body;
+    const { mobNo } = req.body;
 
     // Validate required field
-    if (!mobile) {
+    if (!mobNo) {
       return res
         .status(400)
         .send({ status: false, message: "Mobile number is required." });
     }
 
     // Find the user by mobile number
-    const findUser = await userModel.findOne({ mobile: mobile });
+    const findUser = await userModel.findOne({ mobile: mobNo });
     if (!findUser) {
       return res
         .status(404)
@@ -217,14 +217,16 @@ const sendOtp = async function (req, res) {
 
     // Generate a 4-digit OTP
     const otp = Math.floor(100000 + Math.random() * 9000);
-    await sendOTP(mobile, otp);
+    console.log("Generated OTP:", otp);
+    await sendOTP(mobNo, otp);
     // Update the OTP for the user in the database
-    await userModel.updateOne({ mobile: mobile }, { $set: { otp: otp } });
+    await userModel.updateOne({ mobile: mobNo }, { $set: { otp: otp } });
 
     // Respond with success
     return res
       .status(200)
-      .send({ status: true, message: "OTP sent successfully." });
+      .send({ status: true,otp, message: "OTP sent successfully." });
+      
   } catch (error) {
     console.error("Error in sendOtp:", error);
     return res
