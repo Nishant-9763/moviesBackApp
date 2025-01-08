@@ -30,3 +30,17 @@ app.use("/api/v1/", route);
 app.listen(process.env.PORT || 3000, function () {
   console.log("Express app running on port " + (process.env.PORT || 3000));
 });
+// {
+//   "version"2,
+//   "builds":[
+//     {
+//       "src":"*.js","use":"@vercel/node"
+//     }
+//   ],
+//   "routes":[
+//     {
+//       "src":"/(.*)",
+//       "dest":"/"
+//     }
+//   ]
+// }
